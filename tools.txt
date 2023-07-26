@@ -1,0 +1,8 @@
+docker cp /home/thiago/Documents/Golang/go-microservice/test_bia.csv db_go:/test_bia.csv
+
+psql -d $POSTGRES_DB -U $POSTGRES_USER -p 5432 -h localhost
+
+COPY energy_consumptions(id, meter_id, active_energy, reactive_energy, capacitive_reactive, solar, date)
+FROM '/test_bia.csv' WITH (FORMAT csv, DELIMITER ',', HEADER true, NULL 'null');
+
+psql -d microservice_db -U db_user_admin -p 5432 -h localhost

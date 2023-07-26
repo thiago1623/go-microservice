@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  golang:
+    container_name: golang
+    build:
+      context: ./
+      target: debug
+    environment:
+      - POSTGRES_DB=microservice_db
+      - POSTGRES_USER=db_user_admin
+      - POSTGRES_PASSWORD=dbpassword1234
+      - POSTGRES_HOST=db_go
+      - POSTGRES_PORT=5432
+    volumes:
+      - ./:/go/src/work/
+    ports:
+      - 8001:8001
+      - 2345:2345
+    security_opt:
+      - "seccomp:unconfined"
+    depends_on:
+      - db_go
+    networks:
+      - backend_go
+  db_go:
+    image: postgres:12
+    container_name: db_go
+    environment:
+        - POSTGRES_DB=microservice_db
+        - POSTGRES_USER=db_user_admin
+        - POSTGRES_PASSWORD=dbpassword1234
+    volumes:
+        # persist the data locally
+        - pg-data:/var/lib/postgresql/data/
+        # copy the initialization scripts inside the container, to create table
+        - ./db_go:/docker-entrypoint-initdb.d/
+    ports:
+        - "5436:5432"
+    networks:
+        - backend_go
+
+volumes:
+    pg-data:
+        driver: local
+
+networks:
+    backend_go:
+        driver: bridge
