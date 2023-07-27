@@ -26,7 +26,7 @@ COPY . /go/src/work/
 RUN go build -o app
 
 ### execution debugger Delve ###
-ENV DEBUG_MODE=false
+ENV DEBUG_MODE=true
 COPY dlv.sh /
 RUN chmod +x /dlv.sh
 COPY wait-for-it.sh /wait-for-it.sh

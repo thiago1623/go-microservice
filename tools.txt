@@ -6,3 +6,10 @@ COPY energy_consumptions(id, meter_id, active_energy, reactive_energy, capacitiv
 FROM '/test_bia.csv' WITH (FORMAT csv, DELIMITER ',', HEADER true, NULL 'null');
 
 psql -d microservice_db -U db_user_admin -p 5432 -h localhost
+
+http://localhost:8001/consumption?meters_ids=1&start_date=2023-06-01&end_date=2023-07-10&kind_period=monthly'
+
+
+select * from energy_consumptions LIMIT 5;
+
+
