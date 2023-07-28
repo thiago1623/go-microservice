@@ -1,8 +1,8 @@
 FROM golang:1.18-alpine as debug
 
-# Instalar git
+# Install git and curl
 RUN apk update && apk upgrade && \
-    apk add --no-cache git \
+    apk add --no-cache git curl \
         dpkg \
         gcc \
         git \
@@ -26,7 +26,7 @@ COPY . /go/src/work/
 RUN go build -o app
 
 ### execution debugger Delve ###
-ENV DEBUG_MODE=true
+ENV DEBUG_MODE=false
 COPY dlv.sh /
 RUN chmod +x /dlv.sh
 COPY wait-for-it.sh /wait-for-it.sh

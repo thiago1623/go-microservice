@@ -20,8 +20,8 @@ var dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=dis
 
 func ConnectDB() {
 
-	maxRetries := 10                 // Número máximo de intentos de conexión
-	retryInterval := 5 * time.Second // Intervalo entre reintentos
+	maxRetries := 10                 // Maximum number of connection attempts
+	retryInterval := 5 * time.Second // Interval between reintents
 
 	for i := 0; i < maxRetries; i++ {
 		var err error

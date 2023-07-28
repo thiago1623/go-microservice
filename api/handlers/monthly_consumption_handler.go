@@ -13,7 +13,6 @@ import (
 func getPeriods(startDate, endDate time.Time, periodType string) []string {
 	var periods []string
 
-	// Determine the time interval between start and end date based on the period type
 	interval := endDate.Sub(startDate)
 	switch periodType {
 	case "monthly":
@@ -29,18 +28,15 @@ func getPeriods(startDate, endDate time.Time, periodType string) []string {
 func aggregateMonthlyData(consumptions []models.EnergyConsumption, startDate, endDate time.Time) []map[string]interface{} {
 	var dataGraph []map[string]interface{}
 
-	// Group the energyConsumptions by meter ID
 	consumptionsByMeterID := make(map[int32][]models.EnergyConsumption)
 	for _, consumption := range consumptions {
 		consumptionsByMeterID[consumption.MeterID] = append(consumptionsByMeterID[consumption.MeterID], consumption)
 	}
 
-	// Aggregate data for each meter based on monthly consumption
 	for meterID, consumptions := range consumptionsByMeterID {
 		meterData := make(map[string]interface{})
 		meterData["meter_id"] = meterID
 
-		// Fetch the address for this meter (assuming one address per meter)
 		var address models.Address
 		db.GetDB().Where("meter_id = ? AND start_date <= ? AND (end_date >= ? OR end_date IS NULL)", meterID, startDate, endDate).First(&address)
 
@@ -68,26 +64,21 @@ func aggregateMonthlyDataForMeter(consumptions []models.EnergyConsumption) ([]fl
 	var reactiveCapacitive []float64
 	var exported []float64
 
-	// Creamos un mapa para agrupar los datos de consumo por mes
 	consumptionsByMonth := make(map[string]models.EnergyConsumption)
 
-	// Iteramos sobre los datos de consumo para acumularlos por mes
 	for _, consumption := range consumptions {
 		monthYear := consumption.Date.Format("Jan 2006")
 		if existingConsumption, found := consumptionsByMonth[monthYear]; found {
-			// Ya existe un consumo para este mes, acumulamos los valores
 			existingConsumption.ActiveEnergy += consumption.ActiveEnergy
 			existingConsumption.ReactiveEnergy += consumption.ReactiveEnergy
 			existingConsumption.CapacitiveReactive += consumption.CapacitiveReactive
 			existingConsumption.Solar += consumption.Solar
 			consumptionsByMonth[monthYear] = existingConsumption
 		} else {
-			// No hay consumo previo para este mes, añadimos uno nuevo
 			consumptionsByMonth[monthYear] = consumption
 		}
 	}
 
-	// Extraemos los valores acumulados para cada mes
 	for _, consumption := range consumptionsByMonth {
 		active = append(active, consumption.ActiveEnergy)
 		reactiveInductive = append(reactiveInductive, consumption.ReactiveEnergy)
@@ -102,8 +93,9 @@ func GetMonthlyConsumptionHandler(w http.ResponseWriter, r *http.Request) {
 	meterIDs := r.URL.Query().Get("meters_ids")
 	startDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("start_date"))
 	endDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("end_date"))
+	testingMode := r.URL.Query().Get("testing_mode") == "true"
 
-	energyConsumptions := fetchEnergyConsumptions(meterIDs, startDate, endDate)
+	energyConsumptions := fetchEnergyConsumptions(meterIDs, startDate, endDate, testingMode)
 
 	response := make(map[string]interface{})
 	response["period"] = getPeriods(startDate, endDate, "monthly")

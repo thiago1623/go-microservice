@@ -7,14 +7,13 @@ import (
 
 	"github.com/thiago1623/go-microservice/db"
 	"github.com/thiago1623/go-microservice/models"
+	"gorm.io/gorm"
 )
 
-func fetchEnergyConsumptions(meterIDsStr string, startDate, endDate time.Time) []models.EnergyConsumption {
-	// Dividir el string de meterIDs en IDs individuales
+func fetchEnergyConsumptions(meterIDsStr string, startDate, endDate time.Time, testingMode bool) []models.EnergyConsumption {
 	meterIDsStrList := strings.Split(meterIDsStr, ",")
 	var meterIDsInt []int32
 
-	// Convertir los elementos de meterIDs de strings a enteros (int32)
 	for _, idStr := range meterIDsStrList {
 		idInt, err := strconv.Atoi(idStr)
 		if err == nil {
@@ -23,8 +22,16 @@ func fetchEnergyConsumptions(meterIDsStr string, startDate, endDate time.Time) [
 	}
 
 	var energyConsumptions []models.EnergyConsumption
+	var dbInstance *gorm.DB
+
+	if testingMode {
+		dbInstance = db.GetDBTesting()
+	} else {
+		dbInstance = db.GetDB()
+	}
+
 	if len(meterIDsInt) > 0 {
-		db.GetDB().Preload("Address").Where("meter_id IN (?) AND date >= ? AND date <= ?", meterIDsInt, startDate, endDate).Find(&energyConsumptions)
+		dbInstance.Preload("Address").Where("meter_id IN (?) AND date >= ? AND date <= ?", meterIDsInt, startDate, endDate).Find(&energyConsumptions)
 	}
 
 	return energyConsumptions

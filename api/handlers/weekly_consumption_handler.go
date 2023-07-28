@@ -17,8 +17,9 @@ func GetWeeklyConsumptionHandler(w http.ResponseWriter, r *http.Request) {
 	meterIDs := r.URL.Query().Get("meters_ids")
 	startDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("start_date"))
 	endDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("end_date"))
+	testingMode := r.URL.Query().Get("testing_mode") == "true"
 
-	energyConsumptions := fetchEnergyConsumptions(meterIDs, startDate, endDate)
+	energyConsumptions := fetchEnergyConsumptions(meterIDs, startDate, endDate, testingMode)
 
 	response := make(map[string]interface{})
 	response["period"] = getWeeklyPeriods(startDate, endDate)
@@ -69,23 +70,17 @@ func aggregateWeeklyDataForMeter(consumptions []models.EnergyConsumption, startD
 	var reactiveCapacitive []string
 	var exported []string
 
-	// Creamos un mapa para agrupar los datos de consumo por semana
 	consumptionsByWeek := make(map[int]string)
 
-	// Iteramos sobre los datos de consumo para agruparlos por semana
 	for _, consumption := range consumptions {
-		// Calculamos el número de semana para el consumo actual
 		weekNumber := int(consumption.Date.Weekday())
 
-		// Utilizamos el número de semana como clave para agrupar los datos de consumo
 		if week, found := consumptionsByWeek[weekNumber]; found {
-			// Ya existe un consumo para esta semana, acumulamos los valores
 			consumptionsByWeek[weekNumber] = week + fmt.Sprintf(",%.3f", consumption.ActiveEnergy) +
 				fmt.Sprintf(",%.3f", consumption.ReactiveEnergy) +
 				fmt.Sprintf(",%.3f", consumption.CapacitiveReactive) +
 				fmt.Sprintf(",%.3f", consumption.Solar)
 		} else {
-			// No hay consumo previo para esta semana, añadimos uno nuevo
 			consumptionsByWeek[weekNumber] = fmt.Sprintf("%.3f", consumption.ActiveEnergy) +
 				fmt.Sprintf(",%.3f", consumption.ReactiveEnergy) +
 				fmt.Sprintf(",%.3f", consumption.CapacitiveReactive) +
@@ -93,14 +88,12 @@ func aggregateWeeklyDataForMeter(consumptions []models.EnergyConsumption, startD
 		}
 	}
 
-	// Ordenamos las semanas para asegurarnos de que están en el orden correcto
 	var weeks []int
 	for week := range consumptionsByWeek {
 		weeks = append(weeks, week)
 	}
 	sort.Ints(weeks)
 
-	// Extraemos los valores acumulados para cada semana
 	for _, week := range weeks {
 		data := strings.Split(consumptionsByWeek[week], ",")
 		active = append(active, data[0])
@@ -115,20 +108,16 @@ func aggregateWeeklyDataForMeter(consumptions []models.EnergyConsumption, startD
 func getWeeklyPeriods(startDate, endDate time.Time) []string {
 	var periods []string
 
-	// Obtenemos el primer día de la primera semana
 	currentDate := startDate
 	for currentDate.Weekday() != time.Sunday {
 		currentDate = currentDate.AddDate(0, 0, -1)
 	}
 
-	// Iteramos por las semanas y construimos los períodos
 	for currentDate.Before(endDate) {
-		// Obtenemos el último día de la semana
 		endOfWeek := currentDate.AddDate(0, 0, 6)
 		period := fmt.Sprintf("%s - %s", currentDate.Format("Jan 2"), endOfWeek.Format("Jan 2"))
 		periods = append(periods, period)
 
-		// Pasamos al próximo domingo para la siguiente semana
 		currentDate = endOfWeek.AddDate(0, 0, 1)
 	}
 

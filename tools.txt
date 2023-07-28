@@ -13,3 +13,6 @@ http://localhost:8001/consumption?meters_ids=1&start_date=2023-06-01&end_date=20
 select * from energy_consumptions LIMIT 5;
 
 
+curl --location 'http://localhost:8001/consumption?meters_ids=1&start_date=2023-06-01&end_date=2023-06-10&kind_period=daily'
+curl -X GET "http://localhost:8001/consumption?meters_ids=1,2&start_date=2023-06-01&end_date=2023-07-10&kind_period=
+monthly"
