@@ -61,7 +61,7 @@ you can install the next extension for vscode
 ![Alt text](image.png)
 
 
-and you can try with de next url: http://localhost:8001/consumption?meters_ids=1,2&start_date=2023-06-01&end_date=2023-07-10&kind_period=monthly
+and you can try with the fallowing url: http://localhost:8001/consumption?meters_ids=1,2&start_date=2023-06-01&end_date=2023-07-10&kind_period=monthly
 
 its some like:
 ![Alt text](image-1.png)
